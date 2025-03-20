@@ -72,6 +72,59 @@ class TestTypeChecker(CheckerTestCase):
             self.checker.visit_attribute(node)
 
 
+class TestTypeComparisonChecker(CheckerTestCase):
+    """Tests for pylint.checkers.typecheck comparison checks."""
+
+    CHECKER_CLASS = typecheck.TypeChecker
+
+    def test_unidiomatic_typecheck_left_side(self) -> None:
+        node = astroid.extract_node(
+            """
+        type(1) == int  #@
+        """
+        )
+        message = MessageTest(
+            "unidiomatic-typecheck",
+            node=node,
+            args=None,
+            confidence=UNDEFINED,
+            line=2,
+            col_offset=0,
+            end_line=2,
+            end_col_offset=14,
+        )
+        with self.assertAddsMessages(message):
+            self.checker.visit_compare(node)
+
+    def test_unidiomatic_typecheck_right_side(self) -> None:
+        node = astroid.extract_node(
+            """
+        int == type(1)  #@
+        """
+        )
+        message = MessageTest(
+            "unidiomatic-typecheck",
+            node=node,
+            args=None,
+            confidence=UNDEFINED,
+            line=2,
+            col_offset=0,
+            end_line=2,
+            end_col_offset=14,
+        )
+        with self.assertAddsMessages(message):
+            self.checker.visit_compare(node)
+
+    def test_unidiomatic_typecheck_not_triggered(self) -> None:
+        node = astroid.extract_node(
+            """
+        isinstance(1, int)  #@
+        """
+        )
+        with self.assertNoMessages():
+            self.checker.visit_call(node)
+
+
 class TestTypeCheckerOnDecorators(CheckerTestCase):
     """Tests for pylint.checkers.typecheck on decorated functions."""
 

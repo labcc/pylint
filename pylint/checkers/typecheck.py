@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+TYPE_QNAME = "builtins.type"
+
 import heapq
 import itertools
 import operator
@@ -2090,9 +2092,44 @@ accessed. Python regular expressions are accepted.",
             )
 
     @only_required_for_messages("unsupported-membership-test")
+    def _is_one_arg_pos_call(self, node: nodes.NodeNG) -> bool:
+        """Return True if the node is a call with exactly one positional argument."""
+        return (
+            isinstance(node, nodes.Call)
+            and len(node.args) == 1
+            and not node.keywords
+            and not node.starargs
+            and not node.kwargs
+        )
+
     def visit_compare(self, node: nodes.Compare) -> None:
         if len(node.ops) != 1:
             return
+        
+        left = node.left
+        operator, right = node.ops[0]
+        
+        # Check for type() comparisons
+        if operator in {"==", "!=", "is", "is not"}:
+            # Check if left is type(x)
+            if self._is_one_arg_pos_call(left):
+                left_func = utils.safe_infer(left.func)
+                if (
+                    isinstance(left_func, nodes.ClassDef)
+                    and left_func.qname() == TYPE_QNAME
+                ):
+                    self.add_message("unidiomatic-typecheck", node=node)
+                    return
+            
+            # Check if right is type(x)
+            if self._is_one_arg_pos_call(right):
+                right_func = utils.safe_infer(right.func)
+                if (
+                    isinstance(right_func, nodes.ClassDef)
+                    and right_func.qname() == TYPE_QNAME
+                ):
+                    self.add_message("unidiomatic-typecheck", node=node)
+                    return
 
         op, right = node.ops[0]
         if op in {"in", "not in"}:
