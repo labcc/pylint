@@ -322,8 +322,12 @@ class ComparisonChecker(_BasicChecker):
         operator, right = node.ops[0]
         if operator in TYPECHECK_COMPARISON_OPERATORS:
             left = node.left
+            # Check if type() is on the left-hand side
             if _is_one_arg_pos_call(left):
                 self._check_type_x_is_y(node, left, operator, right)
+            # Check if type() is on the right-hand side
+            elif _is_one_arg_pos_call(right):
+                self._check_type_x_is_y(node, right, operator, left)
 
     def _check_type_x_is_y(
         self,
