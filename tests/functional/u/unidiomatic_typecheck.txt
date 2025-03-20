@@ -12,3 +12,7 @@ unidiomatic-typecheck:67:4:67:23:type_of_literals_positives:Use isinstance() rat
 unidiomatic-typecheck:68:4:68:27:type_of_literals_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
 unidiomatic-typecheck:69:4:69:23:type_of_literals_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
 unidiomatic-typecheck:70:4:70:27:type_of_literals_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
+unidiomatic-typecheck:75:4:75:19:right_hand_side_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
+unidiomatic-typecheck:76:4:76:23:right_hand_side_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
+unidiomatic-typecheck:77:4:77:19:right_hand_side_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED
+unidiomatic-typecheck:78:4:78:19:right_hand_side_positives:Use isinstance() rather than type() for a typecheck.:UNDEFINED

@@ -68,3 +68,27 @@ def type_of_literals_positives(a):
     type(a) is not type({}) # [unidiomatic-typecheck]
     type(a) is type("") # [unidiomatic-typecheck]
     type(a) is not type("") # [unidiomatic-typecheck]
+
+def right_hand_side_positives():
+    """Test for type() on the right-hand side of comparisons."""
+    int is type(42) # [unidiomatic-typecheck]
+    int is not type(42) # [unidiomatic-typecheck]
+    int == type(42) # [unidiomatic-typecheck]
+    int != type(42) # [unidiomatic-typecheck]
+
+def right_hand_side_negatives(**kwargs):
+    """Test cases that should not trigger the warning."""
+    int is type('Q', (object,), dict(a=1))
+    int is not type('Q', (object,), dict(a=1))
+    int == type('Q', (object,), dict(a=1))
+    int != type('Q', (object,), dict(a=1))
+    
+    int is type(bad=7)
+    int is not type(bad=7)
+    int == type(bad=7)
+    int != type(bad=7)
+    
+    int is type(**kwargs)
+    int is not type(**kwargs)
+    int == type(**kwargs)
+    int != type(**kwargs)
