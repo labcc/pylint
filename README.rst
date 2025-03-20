@@ -33,10 +33,6 @@
    :target: https://bestpractices.coreinfrastructure.org/projects/6328
    :alt: CII Best Practices
 
-.. image:: https://img.shields.io/ossf-scorecard/github.com/PyCQA/pylint?label=openssf%20scorecard&style=flat
-   :target: https://api.securityscorecards.dev/projects/github.com/PyCQA/pylint
-   :alt: OpenSSF Scorecard
-
 .. image:: https://img.shields.io/discord/825463413634891776.svg
    :target: https://discord.gg/qYxpadCgkx
    :alt: Discord
