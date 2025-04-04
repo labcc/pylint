@@ -1,4 +1,5 @@
 useless-parent-delegation:221:4:221:25:UselessSuper.equivalent_params:Useless parent or super() delegation in method 'equivalent_params':INFERENCE
+use-implicit-booleaness-not-len:301:41:301:52::Do not use `len(SEQUENCE)` to determine if a sequence is empty:INFERENCE
 useless-parent-delegation:224:4:224:27:UselessSuper.equivalent_params_1:Useless parent or super() delegation in method 'equivalent_params_1':INFERENCE
 useless-parent-delegation:227:4:227:27:UselessSuper.equivalent_params_2:Useless parent or super() delegation in method 'equivalent_params_2':INFERENCE
 useless-parent-delegation:230:4:230:27:UselessSuper.equivalent_params_3:Useless parent or super() delegation in method 'equivalent_params_3':INFERENCE

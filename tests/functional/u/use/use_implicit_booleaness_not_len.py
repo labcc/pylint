@@ -14,7 +14,7 @@ if z and len(['T', 'E', 'S', 'T']):  # [use-implicit-booleaness-not-len]
 if True or len('TEST'):  # [use-implicit-booleaness-not-len]
     pass
 
-if len('TEST') == 0:  # Should be fine
+if len('TEST') == 0:  # [use-implicit-booleaness-not-len]
     pass
 
 if len('TEST') < 1:  # Should be fine
@@ -29,7 +29,7 @@ if 1 > len('TEST'):  # Should be fine
 if 0 >= len('TEST'):  # Should be fine
     pass
 
-if z and len('TEST') == 0:  # Should be fine
+if z and len('TEST') == 0:  # [use-implicit-booleaness-not-len]
     pass
 
 if 0 == len('TEST') < 10:  # Should be fine
@@ -73,7 +73,7 @@ while z and len('TEST'):  # [use-implicit-booleaness-not-len]
 while not len('TEST') and z:  # [use-implicit-booleaness-not-len]
     pass
 
-assert len('TEST') > 0  # Should be fine
+assert len('TEST') > 0  # [use-implicit-booleaness-not-len]
 
 x = 1 if len('TEST') != 0 else 2  # Should be fine
 
@@ -82,7 +82,7 @@ f_o_o = len('TEST') or 42  # Should be fine
 a = x and len(x)  # Should be fine
 
 def some_func():
-    return len('TEST') > 0  # Should be fine
+    return len('TEST') > 0  # [use-implicit-booleaness-not-len]
 
 def github_issue_1325():
     l = [1, 2, 3]
