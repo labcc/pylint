@@ -112,9 +112,22 @@ class ImplicitBooleanessChecker(checkers.BaseChecker):
     def visit_call(self, node: nodes.Call) -> None:
         # a len(S) call is used inside a test condition
         # could be if, while, assert or if expression statement
-        # e.g. `if len(S):`
+        # e.g. `if len(S):` or `if len(S) > 0:`
         if not utils.is_call_of_name(node, "len"):
             return
+
+        # Check if this is a comparison like len(x) > 0 or len(x) == 0
+        if isinstance(node.parent, nodes.Compare):
+            parent = node.parent
+            if len(parent.ops) == 1:
+                op, right = parent.ops[0]
+                # Flag len(x) > 0, len(x) >= 1, len(x) != 0
+                if ((op in {">", ">=", "!="} and _is_constant_zero(right)) or
+                    (op in {"==", "<", "<="} and _is_constant_zero(right)) or
+                    (op in {"<", "<="} and _is_constant_zero(parent.left))):
+                    self._check_len_comparison(node, parent)
+                    return
+
         # the len() call could also be nested together with other
         # boolean operations, e.g. `if z or len(x):`
         parent = node.parent
@@ -137,6 +150,26 @@ class ImplicitBooleanessChecker(checkers.BaseChecker):
             instance = next(len_arg.infer())
         except astroid.InferenceError:
             # Probably undefined-variable, abort check
+            return
+        mother_classes = self.base_names_of_instance(instance)
+        affected_by_pep8 = any(
+            t in mother_classes for t in ("str", "tuple", "list", "set")
+        )
+        if "range" in mother_classes or (
+            affected_by_pep8 and not self.instance_has_bool(instance)
+        ):
+            self.add_message(
+                "use-implicit-booleaness-not-len",
+                node=node,
+                confidence=INFERENCE,
+            )
+
+    def _check_len_comparison(self, node: nodes.Call, parent: nodes.Compare) -> None:
+        """Check for len() comparisons like len(x) > 0 or len(x) == 0."""
+        len_arg = node.args[0]
+        try:
+            instance = next(len_arg.infer())
+        except astroid.InferenceError:
             return
         mother_classes = self.base_names_of_instance(instance)
         affected_by_pep8 = any(
