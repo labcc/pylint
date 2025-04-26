@@ -324,10 +324,17 @@ class ComparisonChecker(_BasicChecker):
             left = node.left
             if _is_one_arg_pos_call(left):
                 self._check_type_x_is_y(node, left, operator, right)
-            elif isinstance(left, nodes.Name) and _is_one_arg_pos_call(right):
+            elif _is_one_arg_pos_call(right):
                 self._check_type_x_is_y(
                     node=node, left=right, operator=operator, right=left
-                )  # transforming Y == type(x) case to type(x) == Y
+                )
+            # Additional check for case where left is a name and right is type()
+            elif isinstance(left, nodes.Name) and _is_one_arg_pos_call(right):
+                right_func = utils.safe_infer(right.func)
+                if isinstance(right_func, nodes.ClassDef) and right_func.qname() == TYPE_QNAME:
+                    self._check_type_x_is_y(
+                        node=node, left=right, operator=operator, right=left
+                    )  # additional check for Y == type(x) pattern
 
     def _check_type_x_is_y(
         self,
