@@ -225,6 +225,7 @@ class ColorizedTextReporter(TextReporter):
     ) -> None:
         super().__init__(output)
         self.color_mapping = color_mapping or ColorizedTextReporter.COLOR_MAPPING
+        self.fail_on_symbols: list[str] = []
         ansi_terms = ["xterm-16color", "xterm-256color"]
         if os.environ.get("TERM") not in ansi_terms:
             if sys.platform == "win32":
@@ -233,8 +234,20 @@ class ColorizedTextReporter(TextReporter):
 
                 self.out = colorama.AnsiToWin32(self.out)
 
+    def on_set_current_module(self, module: str, filepath: str | None) -> None:
+        """Store fail_on_symbols from linter when module changes."""
+        super().on_set_current_module(module, filepath)
+        if self.linter:
+            self.fail_on_symbols = getattr(self.linter, 'fail_on_symbols', [])
+
     def _get_decoration(self, msg_id: str) -> MessageStyle:
-        """Returns the message style as defined in self.color_mapping."""
+        """Returns the message style as defined in self.color_mapping.
+        Applies special coloring for messages configured in fail_on_symbols.
+        """
+        # First check if this message is in fail_on_symbols
+        if msg_id in self.fail_on_symbols:
+            return MessageStyle("red", ("bold", "inverse"))
+        # Fall back to default color mapping
         return self.color_mapping.get(msg_id[0]) or MessageStyle(None)
 
     def handle_message(self, msg: Message) -> None:
