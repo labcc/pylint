@@ -222,9 +222,12 @@ class ColorizedTextReporter(TextReporter):
         self,
         output: TextIO | None = None,
         color_mapping: ColorMappingDict | None = None,
+        linter: Any | None = None,
     ) -> None:
         super().__init__(output)
         self.color_mapping = color_mapping or ColorizedTextReporter.COLOR_MAPPING
+        self.linter = linter
+        self._update_color_mapping()
         ansi_terms = ["xterm-16color", "xterm-256color"]
         if os.environ.get("TERM") not in ansi_terms:
             if sys.platform == "win32":
@@ -232,6 +235,16 @@ class ColorizedTextReporter(TextReporter):
                 import colorama
 
                 self.out = colorama.AnsiToWin32(self.out)
+
+    def _update_color_mapping(self) -> None:
+        """Update color mapping to include custom fail-on symbols."""
+        if not self.linter or not hasattr(self.linter, 'fail_on_symbols'):
+            return
+
+        # Use same color as errors (red) for custom fail-on symbols
+        for symbol in self.linter.fail_on_symbols:
+            if symbol not in self.color_mapping:
+                self.color_mapping[symbol] = MessageStyle("red", ("bold",))
 
     def _get_decoration(self, msg_id: str) -> MessageStyle:
         """Returns the message style as defined in self.color_mapping."""
@@ -285,5 +298,5 @@ def register(linter: PyLinter) -> None:
     linter.register_reporter(NoHeaderReporter)
     linter.register_reporter(ParseableTextReporter)
     linter.register_reporter(VSTextReporter)
-    linter.register_reporter(ColorizedTextReporter)
+    linter.register_reporter(lambda output=None: ColorizedTextReporter(output, linter=linter))
     linter.register_reporter(GithubReporter)
