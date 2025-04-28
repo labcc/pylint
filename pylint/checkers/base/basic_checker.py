@@ -114,6 +114,51 @@ class BasicChecker(_BasicChecker):
 
     name = "basic"
     msgs = {
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
+        "E0102": (
+            "Function %r redefined",
+            "function-redefined",
+            "Used when a function is redefined with the same name in the same scope.",
+        ),
         "W0101": (
             "Unreachable code",
             "unreachable",
