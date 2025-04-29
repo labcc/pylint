@@ -336,22 +336,28 @@ class ComparisonChecker(_BasicChecker):
         operator: str,
         right: nodes.NodeNG,
     ) -> None:
-        """Check for expressions like type(x) == Y."""
+        """Check for expressions like type(x) == Y or Y == type(x)."""
+        # Check if left is type(x)
         left_func = utils.safe_infer(left.func)
-        if not (
+        left_is_type = (
             isinstance(left_func, nodes.ClassDef) and left_func.qname() == TYPE_QNAME
-        ):
-            return
+        )
 
-        if operator in {"is", "is not"} and _is_one_arg_pos_call(right):
+        # Check if right is type(x)
+        right_func = None
+        if _is_one_arg_pos_call(right):
             right_func = utils.safe_infer(right.func)
-            if (
-                isinstance(right_func, nodes.ClassDef)
-                and right_func.qname() == TYPE_QNAME
-            ):
-                # type(x) == type(a)
-                right_arg = utils.safe_infer(right.args[0])
-                if not isinstance(right_arg, LITERAL_NODE_TYPES):
-                    # not e.g. type(x) == type([])
-                    return
-        self.add_message("unidiomatic-typecheck", node=node)
+        right_is_type = (
+            isinstance(right_func, nodes.ClassDef) and right_func.qname() == TYPE_QNAME
+        )
+
+        # Handle type(x) == type(a) special case
+        if operator in {"is", "is not"} and left_is_type and right_is_type:
+            right_arg = utils.safe_infer(right.args[0])
+            if not isinstance(right_arg, LITERAL_NODE_TYPES):
+                # not e.g. type(x) == type([])
+                return
+
+        # If either side is a type() call, emit the warning
+        if left_is_type or right_is_type:
+            self.add_message("unidiomatic-typecheck", node=node)
