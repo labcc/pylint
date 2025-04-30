@@ -822,6 +822,16 @@ def _is_invalid_isinstance_type(arg: nodes.NodeNG) -> bool:
 class TypeChecker(BaseChecker):
     """Try to find bugs in the code using type inference."""
 
+    def _is_pydantic_dict_field(self, node: nodes.NodeNG) -> bool:
+        """Check if node is a Pydantic Field with dict type."""
+        if not isinstance(node, nodes.AnnAssign):
+            return False
+        if not isinstance(node.annotation, nodes.Subscript):
+            return False
+        if not isinstance(node.annotation.value, nodes.Name):
+            return False
+        return node.annotation.value.name == "dict"
+
     # configuration section name
     name = "typecheck"
     # messages
@@ -2166,6 +2176,10 @@ accessed. Python regular expressions are accepted.",
             else:
                 return  # It would be better to handle function
                 # decorators, but let's start slow.
+
+        # Skip unsubscriptable check for Pydantic dict Fields
+        if msg == "unsubscriptable-object" and self._is_pydantic_dict_field(node.parent):
+            return
 
         if (
             supported_protocol
