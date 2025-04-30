@@ -34,10 +34,14 @@ class ImplicitBooleanessChecker(checkers.BaseChecker):
 
         No: if len(seq):
             if not len(seq):
+            if len(seq) == 0:
+            if len(seq) > 0:
 
     Problems detected:
     * if len(sequence):
     * if not len(sequence):
+    * if len(sequence) == 0:
+    * if len(sequence) > 0:
     * elif len(sequence):
     * elif not len(sequence):
     * while len(sequence):
@@ -64,11 +68,11 @@ class ImplicitBooleanessChecker(checkers.BaseChecker):
     name = "refactoring"
     msgs = {
         "C1802": (
-            "Do not use `len(SEQUENCE)` without comparison to determine if a sequence is empty",
+            "Do not use `len(SEQUENCE)` without comparison or with comparison to zero to determine if a sequence is empty",
             "use-implicit-booleaness-not-len",
-            "Empty sequences are considered false in a boolean context. You can either"
-            " remove the call to 'len' (``if not x``) or compare the length against a"
-            " scalar (``if len(x) > 1``).",
+            "Empty sequences are considered false in a boolean context. Instead of"
+            " `len(SEQUENCE)`, `len(SEQUENCE) == 0`, or `len(SEQUENCE) > 0`, use"
+            " the implicit boolean evaluation (``if SEQUENCE`` or ``if not SEQUENCE``).",
             {"old_names": [("C1801", "len-as-condition")]},
         ),
         "C1803": (
@@ -120,6 +124,55 @@ class ImplicitBooleanessChecker(checkers.BaseChecker):
         parent = node.parent
         while isinstance(parent, nodes.BoolOp):
             parent = parent.parent
+
+        # Check if this is a comparison like len(x) == 0 or len(x) > 0
+        if isinstance(parent, nodes.Compare) and len(parent.ops) == 1:
+            operator, comparator = parent.ops[0]
+            # Check for len(x) == 0 or len(x) > 0
+            if ((operator == "==" and _is_constant_zero(comparator)) or
+                (operator == ">" and _is_constant_zero(comparator))):
+                len_arg = node.args[0]
+                try:
+                    instance = next(len_arg.infer())
+                except astroid.InferenceError:
+                    # Probably undefined-variable, abort check
+                    return
+                mother_classes = self.base_names_of_instance(instance)
+                affected_by_pep8 = any(
+                    t in mother_classes for t in ("str", "tuple", "list", "set")
+                )
+                if "range" in mother_classes or (
+                    affected_by_pep8 and not self.instance_has_bool(instance)
+                ):
+                    self.add_message(
+                        "use-implicit-booleaness-not-len",
+                        node=parent,
+                        confidence=INFERENCE,
+                    )
+                return
+            # Check for 0 == len(x) or 0 < len(x)
+            elif ((operator == "==" and node == comparator and _is_constant_zero(parent.left)) or
+                  (operator == "<" and node == comparator and _is_constant_zero(parent.left))):
+                len_arg = node.args[0]
+                try:
+                    instance = next(len_arg.infer())
+                except astroid.InferenceError:
+                    # Probably undefined-variable, abort check
+                    return
+                mother_classes = self.base_names_of_instance(instance)
+                affected_by_pep8 = any(
+                    t in mother_classes for t in ("str", "tuple", "list", "set")
+                )
+                if "range" in mother_classes or (
+                    affected_by_pep8 and not self.instance_has_bool(instance)
+                ):
+                    self.add_message(
+                        "use-implicit-booleaness-not-len",
+                        node=parent,
+                        confidence=INFERENCE,
+                    )
+                return
+
         # we're finally out of any nested boolean operations so check if
         # this len() call is part of a test condition
         if not utils.is_test_condition(node, parent):
