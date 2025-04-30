@@ -336,22 +336,29 @@ class ComparisonChecker(_BasicChecker):
         operator: str,
         right: nodes.NodeNG,
     ) -> None:
-        """Check for expressions like type(x) == Y."""
-        left_func = utils.safe_infer(left.func)
-        if not (
-            isinstance(left_func, nodes.ClassDef) and left_func.qname() == TYPE_QNAME
-        ):
+        """Check for expressions like type(x) == Y or Y == type(x)."""
+        def is_type_call(node: nodes.NodeNG) -> bool:
+            if not _is_one_arg_pos_call(node):
+                return False
+            func = utils.safe_infer(node.func)
+            return isinstance(func, nodes.ClassDef) and func.qname() == TYPE_QNAME
+
+        # Check for type(x) == Y
+        if is_type_call(left):
+            if operator in {"is", "is not"} and _is_one_arg_pos_call(right):
+                right_func = utils.safe_infer(right.func)
+                if (
+                    isinstance(right_func, nodes.ClassDef)
+                    and right_func.qname() == TYPE_QNAME
+                ):
+                    # type(x) == type(a)
+                    right_arg = utils.safe_infer(right.args[0])
+                    if not isinstance(right_arg, LITERAL_NODE_TYPES):
+                        # not e.g. type(x) == type([])
+                        return
+            self.add_message("unidiomatic-typecheck", node=node)
             return
 
-        if operator in {"is", "is not"} and _is_one_arg_pos_call(right):
-            right_func = utils.safe_infer(right.func)
-            if (
-                isinstance(right_func, nodes.ClassDef)
-                and right_func.qname() == TYPE_QNAME
-            ):
-                # type(x) == type(a)
-                right_arg = utils.safe_infer(right.args[0])
-                if not isinstance(right_arg, LITERAL_NODE_TYPES):
-                    # not e.g. type(x) == type([])
-                    return
-        self.add_message("unidiomatic-typecheck", node=node)
+        # Check for Y == type(x)
+        if is_type_call(right):
+            self.add_message("unidiomatic-typecheck", node=node)
